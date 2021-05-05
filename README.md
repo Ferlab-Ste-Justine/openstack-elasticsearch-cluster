@@ -2,6 +2,12 @@
 
 This terraform module provisions an elasticsearch 7 cluster on openstack.
 
+The following security groups are provisioned with the cluster:
+- **es-masters**: Internal security group allowing traffic between es members, 9200 tcp traffic from **es-client** and ssh traffic from the **es-bastion**
+- **es-workers**: Internal security group allowing traffic between es members, 9200 tcp traffic from **es-client** and ssh traffic from the **es-bastion**
+- **es-client**: Exported security group that should supplement other security groups on a vm and allows to send 9200 tcp traffic to any member of the es cluster.
+- **es-bastion**: Exported standalone security group that opens up ssh traffic from the outside and allows to connect via ssh to any member of the es cluster.
+
 # Limitations
 
 ## Security
@@ -39,8 +45,9 @@ Furthermore, the module assumes that you have a dynamically configurable dns ser
 
 ## Output Variables
 
-- masters: List of dedicated master nodes, each which is has the **id** and **ip** key
-- workers: List of dedicated data nodes, each which is has the **id** and **ip** key
+- **masters**: List of dedicated master nodes, each which is has the **id** and **ip** key
+- **workers**: List of dedicated data nodes, each which is has the **id** and **ip** key
+- **groups**: Security groups (ie, resources of type openstack_networking_secgroup_v2) that can be used to provide nodes with additional access to the es cluster. It has the following 2 groups: bastion, client.
 
 ## Example
 

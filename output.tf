@@ -15,3 +15,10 @@ output workers {
     }
   ]
 }
+
+output "groups" {
+  value = {
+    bastion = openstack_networking_secgroup_v2.es_bastion
+    client = openstack_networking_secgroup_v2.es_client
+  }
+}
