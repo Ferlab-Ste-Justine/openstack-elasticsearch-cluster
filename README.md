@@ -2,6 +2,12 @@
 
 This terraform module provisions an elasticsearch 7 cluster on openstack.
 
+The following security groups are provisioned with the cluster:
+- **es-masters**: Internal security group allowing traffic between es members, 9200 tcp traffic from **es-client** and ssh traffic from the **es-bastion**
+- **es-workers**: Internal security group allowing traffic between es members, 9200 tcp traffic from **es-client** and ssh traffic from the **es-bastion**
+- **es-client**: Exported security group that should supplement other security groups on a vm and allows to send 9200 tcp traffic to any member of the es cluster.
+- **es-bastion**: Exported standalone security group that opens up ssh traffic from the outside and allows to connect via ssh to any member of the es cluster.
+
 # Limitations
 
 ## Security
@@ -28,7 +34,8 @@ Furthermore, the module assumes that you have a dynamically configurable dns ser
 - image_id: ID of the OS image that will be used to provision the nodes.
 - masters_flavor_id: VM sizing that will be used to provision the master nodes.
 - workers_flavor_id: VM sizing that will be used to provision the worker nodes.
-- security_group_ids: Ids of the security groups that will be associated with the nodes.
+- masters_extra_security_group_ids: Additional security groups that will be associated with the master nodes.
+- workers_extra_security_group_ids: Additional security groups that will be associated with the worker nodes.
 - network_id: Id of the network the nodes will be attached to.
 - keypair_name: Name of the ssh keypair that will be usable to ssh on any of the nodes.
 - masters_count: Number of masters in the cluster.
@@ -39,8 +46,9 @@ Furthermore, the module assumes that you have a dynamically configurable dns ser
 
 ## Output Variables
 
-- masters: List of dedicated master nodes, each which is has the **id** and **ip** key
-- workers: List of dedicated data nodes, each which is has the **id** and **ip** key
+- **masters**: List of dedicated master nodes, each which is has the **id** and **ip** key
+- **workers**: List of dedicated data nodes, each which is has the **id** and **ip** key
+- **groups**: Security groups (ie, resources of type openstack_networking_secgroup_v2) that can be used to provide nodes with additional access to the es cluster. It has the following 2 groups: bastion, client.
 
 ## Example
 
