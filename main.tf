@@ -40,7 +40,7 @@ resource "openstack_networking_port_v2" "masters" {
   count          = 3
   name           = var.namespace != "" ? "es-master-${var.namespace}-${count.index + 1}" : "es-master-${count.index + 1}"
   network_id     = var.network_id
-  security_group_ids = var.security_group_ids
+  security_group_ids = concat(var.masters_extra_security_group_ids, [openstack_networking_secgroup_v2.es_master.id])
   admin_state_up = true
 }
 
@@ -48,7 +48,7 @@ resource "openstack_networking_port_v2" "workers" {
   count          = 3
   name           = var.namespace != "" ? "es-worker-${var.namespace}-${count.index + 1}" : "es-worker-${count.index + 1}"
   network_id     = var.network_id
-  security_group_ids = var.security_group_ids
+  security_group_ids = concat(var.workers_extra_security_group_ids, [openstack_networking_secgroup_v2.es_worker.id])
   admin_state_up = true
 }
 

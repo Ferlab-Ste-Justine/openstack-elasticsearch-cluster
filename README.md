@@ -34,7 +34,8 @@ Furthermore, the module assumes that you have a dynamically configurable dns ser
 - image_id: ID of the OS image that will be used to provision the nodes.
 - masters_flavor_id: VM sizing that will be used to provision the master nodes.
 - workers_flavor_id: VM sizing that will be used to provision the worker nodes.
-- security_group_ids: Ids of the security groups that will be associated with the nodes.
+- masters_extra_security_group_ids: Additional security groups that will be associated with the master nodes.
+- workers_extra_security_group_ids: Additional security groups that will be associated with the worker nodes.
 - network_id: Id of the network the nodes will be attached to.
 - keypair_name: Name of the ssh keypair that will be usable to ssh on any of the nodes.
 - masters_count: Number of masters in the cluster.

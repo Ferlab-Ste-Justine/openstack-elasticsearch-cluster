@@ -19,9 +19,16 @@ variable "workers_flavor_id" {
   type = string
 }
 
-variable "security_group_ids" {
-  description = "Security groups of the node"
+variable "masters_extra_security_group_ids" {
+  description = "Extra security groups for the masters"
   type = list(string)
+  default = []
+}
+
+variable "workers_extra_security_group_ids" {
+  description = "Extra security groups for the workers"
+  type = list(string)
+  default = []
 }
 
 variable "network_id" {
