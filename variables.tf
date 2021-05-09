@@ -85,12 +85,14 @@ variable "s3_access_key" {
   description = "Endpoint used to connect to an s3-compatible store for backups"
   type = string
   default = ""
+  sensitive = true
 }
 
 variable "s3_secret_key" {
   description = "Protocol to use (http or https) when connecting to the s3 store for backups"
   type = string
-  default = "https"
+  default = ""
+  sensitive = true
 }
 
 
