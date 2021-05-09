@@ -12,6 +12,10 @@ data "template_cloudinit_config" "elasticsearch_master_config" {
         initial_masters_count = var.initial_masters_count
         base_name = var.namespace != "" ? "es-master-${var.namespace}-" : "es-master-"
         cluster_name = var.namespace != "" ? "es-cluster-${var.namespace}" : "es-cluster"
+        s3_endpoint = var.s3_endpoint
+        s3_protocol = var.s3_protocol
+        s3_access_key = var.s3_access_key
+        s3_secret_key = var.s3_secret_key
       }
     )
   }
