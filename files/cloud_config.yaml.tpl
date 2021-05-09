@@ -57,6 +57,17 @@ write_files:
 %{ for idx in range(initial_masters_count) ~}
           - ${format("%s%d", base_name, idx)}
 %{ endfor ~}
+%{ if s3_access_key != "" ~}
+      s3:
+        client:
+          default:
+%{ if s3_endpoint != "" ~}
+            endpoint: ${s3_endpoint}
+            protocol: ${s3_protocol}
+%{ endif ~}
+            access_key: ${s3_access_key}
+            secret_key: ${s3_secret_key}
+%{ endif ~}
   #Elasticsearch systemd configuration
   - path: /usr/local/bin/set_es_heap
     owner: root:root
@@ -145,6 +156,10 @@ runcmd:
   - echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
   - echo 'vm.swappiness = 1' >> /etc/sysctl.conf
   - sysctl -p
+  ##Install s3 snapshot plugin
+  - /opt/es/bin/elasticsearch-plugin install repository-s3
+  - /opt/es/bin/elasticsearch-keystore add s3.client.default.access_key
+  - /opt/es/bin/elasticsearch-keystore add s3.client.default.secret_key
   ##Launch service
   - systemctl enable elasticsearch
   - systemctl start elasticsearch

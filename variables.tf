@@ -68,3 +68,29 @@ variable "nameserver_ips" {
   type = list(string)
   default = []
 }
+
+variable "s3_endpoint" {
+  description = "Endpoint used to connect to an s3-compatible store for backups"
+  type = string
+  default = ""
+}
+
+variable "s3_protocol" {
+  description = "Protocol to use (http or https) when connecting to the s3 store for backups"
+  type = string
+  default = "https"
+}
+
+variable "s3_access_key" {
+  description = "Endpoint used to connect to an s3-compatible store for backups"
+  type = string
+  default = ""
+}
+
+variable "s3_secret_key" {
+  description = "Protocol to use (http or https) when connecting to the s3 store for backups"
+  type = string
+  default = "https"
+}
+
+
