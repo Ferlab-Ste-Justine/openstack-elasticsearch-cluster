@@ -8,6 +8,22 @@ users:
     system: true
     lock_passwd: true
 write_files:
+  #Elasticsearch tls files
+  - path: /etc/elasticsearch/tls/server.key
+    owner: root:root
+    permissions: "0400"
+    content: |
+      ${indent(6, server_key)}
+  - path: /etc/elasticsearch/tls/server.pem
+    owner: root:root
+    permissions: "0400"
+    content: |
+      ${indent(6, join("", [server_certificate, ca_certificate]))}
+  - path: /etc/elasticsearch/tls/ca.pem
+    owner: root:root
+    permissions: "0400"
+    content: |
+      ${indent(6, ca_certificate)}
   #Elasticsearch configuration files
   - path: /etc/elasticsearch/jvm.options
     owner: root:root
@@ -41,6 +57,27 @@ write_files:
     owner: root:root
     permissions: "0444"
     content: |
+      xpack:
+        security:
+          enabled: true
+          authc:
+            anonymous:
+              username: anonymous_user
+              roles: superuser
+              authz_exception: true
+          http:
+            ssl:
+              enabled: true
+              key: "/etc/elasticsearch/tls/server.key"
+              certificate: "/etc/elasticsearch/tls/server.pem"
+              certificate_authorities: ["/etc/elasticsearch/tls/ca.pem"]
+          transport:
+            ssl:
+              enabled: true
+              verification_mode: certificate
+              key: "/etc/elasticsearch/tls/server.key"
+              certificate: "/etc/elasticsearch/tls/server.pem"
+              certificate_authorities: ["/etc/elasticsearch/tls/ca.pem"]
       path:
         data: /var/lib/elasticsearch
       network:
@@ -55,8 +92,15 @@ write_files:
         name: ${cluster_name}
         initial_master_nodes:
 %{ for idx in range(initial_masters_count) ~}
-          - ${format("%s%d", base_name, idx)}
+          - ${format("%s%d", base_name, idx + 1)}
 %{ endfor ~}
+%{ if s3_access_key != "" ~}
+      s3:
+        client:
+          default:
+            endpoint: ${s3_endpoint}
+            protocol: ${s3_protocol}
+%{ endif ~}
   #Elasticsearch systemd configuration
   - path: /usr/local/bin/set_es_heap
     owner: root:root
@@ -128,13 +172,13 @@ runcmd:
   - systemctl start systemd-resolved
   #Install elasticsearch
   ##Get elasticsearch executables
-  - wget -O /opt/elasticsearch-7.8.1-linux-x86_64.tar.gz https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.8.1-linux-x86_64.tar.gz
-  - wget -O /opt/elasticsearch-7.8.1-linux-x86_64.tar.gz.sha512 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.8.1-linux-x86_64.tar.gz.sha512
-  - cd /opt && shasum -a 512 -c elasticsearch-7.8.1-linux-x86_64.tar.gz.sha512
-  - tar zxvf /opt/elasticsearch-7.8.1-linux-x86_64.tar.gz -C /opt
-  - mv /opt/elasticsearch-7.8.1 /opt/es
+  - wget -O /opt/elasticsearch-7.14.1-linux-x86_64.tar.gz https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.14.1-linux-x86_64.tar.gz
+  - wget -O /opt/elasticsearch-7.14.1-linux-x86_64.tar.gz.sha512 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.14.1-linux-x86_64.tar.gz.sha512
+  - cd /opt && shasum -a 512 -c elasticsearch-7.14.1-linux-x86_64.tar.gz.sha512
+  - tar zxvf /opt/elasticsearch-7.14.1-linux-x86_64.tar.gz -C /opt
+  - mv /opt/elasticsearch-7.14.1 /opt/es
   - chown -R elasticsearch:elasticsearch /opt/es
-  - rm /opt/elasticsearch-7.8.1-linux-x86_64.tar.gz /opt/elasticsearch-7.8.1-linux-x86_64.tar.gz.sha512
+  - rm /opt/elasticsearch-7.14.1-linux-x86_64.tar.gz /opt/elasticsearch-7.14.1-linux-x86_64.tar.gz.sha512
   ##Setup requisite directories, non-templated files and permissions
   - mkdir -p /var/lib/elasticsearch && chown -R elasticsearch:elasticsearch /var/lib/elasticsearch
   - mkdir -p /opt/es-temp && chown -R elasticsearch:elasticsearch /opt/es-temp
@@ -145,6 +189,15 @@ runcmd:
   - echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
   - echo 'vm.swappiness = 1' >> /etc/sysctl.conf
   - sysctl -p
+  ##Install s3 snapshot plugin
+%{ if s3_access_key != "" ~}
+  - mkdir -p /home/elasticsearch
+  - chown elasticsearch:elasticsearch /home/elasticsearch
+  - /opt/es/bin/elasticsearch-plugin install --batch repository-s3
+  - /opt/es/bin/elasticsearch-keystore create
+  - printf "${s3_access_key}" | /opt/es/bin/elasticsearch-keystore add --stdin --force s3.client.default.access_key
+  - printf "${s3_secret_key}" | /opt/es/bin/elasticsearch-keystore add --stdin --force s3.client.default.secret_key
+%{ endif ~}
   ##Launch service
   - systemctl enable elasticsearch
   - systemctl start elasticsearch
