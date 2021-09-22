@@ -100,6 +100,8 @@ write_files:
           default:
             endpoint: ${s3_endpoint}
             protocol: ${s3_protocol}
+            #path_style_access: true
+            #signer_override: "S3SignerType"
 %{ endif ~}
   #Elasticsearch systemd configuration
   - path: /usr/local/bin/set_es_heap
@@ -158,6 +160,16 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
+%{ if s3_access_key != "" ~}
+  - path: /opt/setup-s3-snapshot-credentials.sh
+    owner: root:root
+    permissions: "0500"
+    content: |
+      #!/bin/sh
+      /opt/es/bin/elasticsearch-keystore create
+      printf "${s3_access_key}" | /opt/es/bin/elasticsearch-keystore add --stdin --force s3.client.default.access_key
+      printf "${s3_secret_key}" | /opt/es/bin/elasticsearch-keystore add --stdin --force s3.client.default.secret_key
+%{ endif ~}
 packages:
   - apt-transport-https
   - ca-certificates
@@ -191,12 +203,12 @@ runcmd:
   - sysctl -p
   ##Install s3 snapshot plugin
 %{ if s3_access_key != "" ~}
+  - /opt/es/bin/elasticsearch-plugin install --batch repository-s3
   - mkdir -p /home/elasticsearch
   - chown elasticsearch:elasticsearch /home/elasticsearch
-  - /opt/es/bin/elasticsearch-plugin install --batch repository-s3
-  - /opt/es/bin/elasticsearch-keystore create
-  - printf "${s3_access_key}" | /opt/es/bin/elasticsearch-keystore add --stdin --force s3.client.default.access_key
-  - printf "${s3_secret_key}" | /opt/es/bin/elasticsearch-keystore add --stdin --force s3.client.default.secret_key
+  - chown elasticsearch:elasticsearch /opt/setup-s3-snapshot-credentials.sh
+  - runuser -l elasticsearch -c '/opt/setup-s3-snapshot-credentials.sh'
+  - rm /opt/setup-s3-snapshot-credentials.sh
 %{ endif ~}
   ##Launch service
   - systemctl enable elasticsearch
