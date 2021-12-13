@@ -127,6 +127,7 @@ write_files:
 
       [Service]
       Environment=ES_PATH_CONF=/etc/elasticsearch
+      Environment=LOG4J_FORMAT_MSG_NO_LOOKUPS=true
       #https://www.elastic.co/guide/en/elasticsearch/reference/current/system-config.html
       LimitNOFILE=65535
       LimitNPROC=4096
