@@ -121,7 +121,7 @@ variable "certificate_validity_period" {
 variable "certificate_early_renewal_period" {
   description = "The es servers cluster's certificates' early renewal period in hours"
   type = number
-  default = 99*365*24
+  default = 365*24
 }
 
 variable "key_length" {
