@@ -1,3 +1,13 @@
+# Deprecation notice
+
+This module is getting deprecated in favor of the following modules:
+- https://github.com/Ferlab-Ste-Justine/terraform-openstack-elasticsearch-security-groups
+- https://github.com/Ferlab-Ste-Justine/terraform-openstack-elasticsearch-server
+
+While less concice, the above modules provide needed flexibility when operating an es cluster by allowing us to reprovision individual nodes and by decoupling the networking from the vms.
+
+This module will be updated as needed while legacy clusters are still using it, but it will eventually be archived.
+
 # About
 
 This terraform module provisions an elasticsearch 7 cluster on openstack.
